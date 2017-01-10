@@ -1,10 +1,11 @@
 package gmcache
 
 import (
-	"github.com/liyue201/gmcache/utils"
-	"syscall"
 	"github.com/judwhite/go-svc/svc"
+	"github.com/liyue201/gmcache/utils"
 	"log"
+	"syscall"
+	"fmt"
 )
 
 func Main() {
@@ -17,21 +18,34 @@ func Main() {
 
 type gmcache struct {
 	utils.WaitGroupWrapper
+	rpcServer IRpcServer
 }
 
-func (p *gmcache) Init(env svc.Environment) error {
+func (this *gmcache) Init(env svc.Environment) error {
 	AppDir := utils.GetAppDir()
 	err := initConfig(AppDir)
-	return  err
+	if err != nil{
+		 return  err
+	}
+	addr := fmt.Sprintf("0.0.0.0:%d", AppConfig.RpcPort)
+	//log.Println("rpc addr:", addr)
+	this.rpcServer = NewRpcServer(addr)
+	return nil
 }
 
-func (p *gmcache) Start() error {
+func (this *gmcache) Start() error {
 	log.Println("gmcache start")
 
+	this.Wrap(func(){
+		this.rpcServer.Run()
+	})
 	return nil
 }
 
-func (p *gmcache) Stop() error {
+func (this *gmcache) Stop() error {
+	err := this.rpcServer.Stop()
+	this.Wait()
+
 	log.Println("gmcache stopped")
-	return nil
+	return err
 }

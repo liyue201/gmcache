@@ -5,7 +5,7 @@ import (
 )
 
 type Config struct {
-	RpcPort string  //grpc listening port
+	RpcPort int  //grpc listening port
 }
 
 var AppConfig *Config
@@ -20,7 +20,7 @@ func initConfig(path string) error {
 	}
 
 	AppConfig = &Config{
-		RpcPort: viper.GetString("server.rpc_port"),
+		RpcPort: viper.GetInt("server.rpc_port"),
 	}
 	return  nil
 }

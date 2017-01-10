@@ -1,0 +1,54 @@
+
+syntax = "proto3";
+
+package proto;
+
+//return code
+enum RCODE {
+    SUCCESS = 0;
+    FAILURE = 1;
+}
+
+/////////////////////////////////////
+// SET operation argument
+
+message SetOptArg {
+    string  key    = 1;
+    bytes   val  = 2;
+    uint64  ttl    = 3;
+}
+
+message SetOptRet {
+    RCODE  code = 1;
+}
+
+///////////////////////////////////////
+// GET operation argument
+
+message GetOptArg {
+    string  key = 1;
+}
+
+message GetOptRet {
+    RCODE code    = 1;
+    bytes val     = 2;
+}
+
+//////////////////////////////////////
+// DELETE operation argument
+
+message DelOptArg {
+    string  key = 1;
+}
+
+message DelOptRet {
+    RCODE  code = 1;
+}
+
+////////////////////////////////////
+
+service RpcService {
+    rpc Set(SetOptArg) returns (SetOptRet);
+    rpc Get(GetOptArg) returns (GetOptRet);
+    rpc Delete(DelOptArg) returns (DelOptRet);
+}

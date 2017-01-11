@@ -2,9 +2,9 @@ package utils
 
 import (
 	"os"
-	"strings"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 func PathExist(_path string) bool {
@@ -16,18 +16,19 @@ func PathExist(_path string) bool {
 }
 
 var appDir string
+
 func GetAppDir() string {
 	if appDir != "" {
-		return  appDir
+		return appDir
 	}
 	file, _ := exec.LookPath(os.Args[0])
 	path, _ := filepath.Abs(file)
 	appDir = filepath.Dir(path)
 
-	return  appDir
+	return appDir
 }
 
-func IsRelactivePath(path string)  bool {
+func IsRelactivePath(path string) bool {
 	if strings.Index(path, ".") == 0 {
 		return true
 	}
@@ -37,8 +38,7 @@ func IsRelactivePath(path string)  bool {
 func AbsPath(path string) string {
 	if IsRelactivePath(path) {
 		path = GetAppDir() + string(os.PathSeparator) + path
-		return  path
+		return path
 	}
-	return  path
+	return path
 }
-

@@ -1,12 +1,12 @@
 package gmcache
 
 import (
+	"errors"
 	"fmt"
 	"github.com/apsdehal/go-logger"
 	"github.com/liyue201/gmcache/utils"
 	"github.com/spf13/viper"
 	"os"
-	"errors"
 )
 
 var AppConfig *Config
@@ -16,7 +16,9 @@ type Config struct {
 	RpcPort int //listening port
 
 	//storage
-	BucketNum int
+	MemoryLimit   int // in M
+	BucketNum     int
+	CleanInterval int //in ms
 
 	//log
 	logDir   string
@@ -26,11 +28,15 @@ type Config struct {
 
 func NewDefaultConfig() *Config {
 	return &Config{
-		RpcPort:   55555,
-		BucketNum: 10,
-		logDir:    "./log",
-		logFile:   "gmcache.log",
-		logLevel:  0,
+		RpcPort: 55555,
+
+		MemoryLimit:   1024,
+		BucketNum:     10,
+		CleanInterval: 20,
+
+		logDir:   "./log",
+		logFile:  "gmcache.log",
+		logLevel: 0,
 	}
 }
 
@@ -46,11 +52,13 @@ func InitConfig(path string) error {
 	}
 
 	AppConfig = &Config{
-		RpcPort:   viper.GetInt("server.rpc_port"),
-		BucketNum: viper.GetInt("storage.bucket_num"),
-		logDir:    utils.AbsPath(viper.GetString("log.dir")),
-		logFile:   viper.GetString("log.file"),
-		logLevel:  viper.GetInt("log.level"),
+		RpcPort:     viper.GetInt("server.rpc_port"),
+		MemoryLimit: viper.GetInt("storage.memory_limit"),
+		BucketNum:   viper.GetInt("storage.bucket_num"),
+		CleanInterval: viper.GetInt("storage.clean_interval"),
+		logDir:      utils.AbsPath(viper.GetString("log.dir")),
+		logFile:     viper.GetString("log.file"),
+		logLevel:    viper.GetInt("log.level"),
 	}
 	return nil
 }

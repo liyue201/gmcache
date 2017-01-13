@@ -5,8 +5,9 @@ import (
 	"github.com/apsdehal/go-logger"
 	"github.com/judwhite/go-svc/svc"
 	"github.com/liyue201/gmcache/utils"
-	"syscall"
 	"log"
+	"syscall"
+	"time"
 )
 
 func Main() {
@@ -19,7 +20,7 @@ func Main() {
 type gmcache struct {
 	utils.WaitGroupWrapper
 	rpcServer IRpcServer
-	storage   IStorage
+	storage   *StorageManager
 }
 
 func (this *gmcache) Init(env svc.Environment) error {
@@ -29,14 +30,15 @@ func (this *gmcache) Init(env svc.Environment) error {
 		log.Print("Init config:", err)
 		return err
 	}
-	if err := CheckConfig() ; err != nil {
+	if err := CheckConfig(); err != nil {
 		log.Print("Check config:", err)
 		return err
 	}
 	if err := InitLog(); err != nil {
 		return err
 	}
-	this.storage = NewSharingStorage(AppConfig.BucketNum)
+	this.storage = NewStorageManager(AppConfig.BucketNum, int64(AppConfig.MemoryLimit)*1024,
+		time.Duration(AppConfig.CleanInterval*1000))
 
 	addr := fmt.Sprintf("0.0.0.0:%d", AppConfig.RpcPort)
 	//log.Println("rpc addr:", addr)
@@ -50,13 +52,18 @@ func (this *gmcache) Start() error {
 	this.Wrap(func() {
 		this.rpcServer.Run()
 	})
+	this.Wrap(func() {
+		this.storage.Run()
+	})
 	return nil
 }
 
 func (this *gmcache) Stop() error {
-	err := this.rpcServer.Stop()
+	this.rpcServer.Stop()
+	this.storage.Stop()
+
 	this.Wait()
 
 	logger.Println("gmcache stopped")
-	return err
+	return nil
 }

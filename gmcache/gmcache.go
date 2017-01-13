@@ -6,10 +6,10 @@ import (
 	"github.com/judwhite/go-svc/svc"
 	"github.com/liyue201/gmcache/utils"
 	"syscall"
+	"log"
 )
 
 func Main() {
-
 	app := &gmcache{}
 	if err := svc.Run(app, syscall.SIGINT, syscall.SIGTERM); err != nil {
 		logger.Println(err)
@@ -19,21 +19,28 @@ func Main() {
 type gmcache struct {
 	utils.WaitGroupWrapper
 	rpcServer IRpcServer
+	storage   IStorage
 }
 
 func (this *gmcache) Init(env svc.Environment) error {
 	AppDir := utils.GetAppDir()
 
-	if err := initConfig(AppDir); err != nil {
+	if err := InitConfig(AppDir); err != nil {
+		log.Print("Init config:", err)
 		return err
 	}
-	if err := initLog(); err != nil {
+	if err := CheckConfig() ; err != nil {
+		log.Print("Check config:", err)
 		return err
 	}
+	if err := InitLog(); err != nil {
+		return err
+	}
+	this.storage = NewSharingStorage(AppConfig.BucketNum)
 
 	addr := fmt.Sprintf("0.0.0.0:%d", AppConfig.RpcPort)
 	//log.Println("rpc addr:", addr)
-	this.rpcServer = NewRpcServer(addr)
+	this.rpcServer = NewRpcServer(addr, this.storage)
 	return nil
 }
 

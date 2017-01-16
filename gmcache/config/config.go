@@ -9,28 +9,53 @@ import (
 type Config struct {
 	//grpc server
 	RpcPort int //listening port
+	Storage StorageCfg
+	Log     LogCfg
+	Reg     RegistryCfg
+}
 
-	//storage
+type StorageCfg struct {
 	MemoryLimit   int // in M
 	BucketNum     int
 	CleanInterval int //in ms
+}
 
-	//log
-	LogDir   string
-	LogFile  string
-	LogLevel int
+type LogCfg struct {
+	Dir   string
+	File  string
+	Level int
+}
+
+type RegistryCfg struct {
+	ETCD        string
+	RegistryDir string
+	ServiceName string
+	NodeName    string
+	NodeAddr    string
+	TTL         int
 }
 
 //Default Configure
 var AppConfig = &Config{
-	RpcPort:       55555,
-	MemoryLimit:   1024,
-	BucketNum:     10,
-	CleanInterval: 20,
-
-	LogDir:   "./log",
-	LogFile:  "gmcache.log",
-	LogLevel: 0,
+	RpcPort: 55555,
+	Storage: StorageCfg{
+		MemoryLimit:   1024,
+		BucketNum:     10,
+		CleanInterval: 20,
+	},
+	Log: LogCfg{
+		Dir:   "./log",
+		File:  "gmcache.log",
+		Level: 0,
+	},
+	Reg: RegistryCfg{
+		ETCD:        "127.0.0.1:4001",
+		RegistryDir: "/dev",
+		ServiceName: "gmcache",
+		NodeName:    "node-01",
+		NodeAddr:    "127.0.0.1:55555",
+		TTL:         5,
+	},
 }
 
 func InitConfig(path string) error {
@@ -53,21 +78,29 @@ func InitConfig(path string) error {
 		}
 	}
 	SetInt(&AppConfig.RpcPort, "server.rpc_port")
-	SetInt(&AppConfig.MemoryLimit, "storage.memory_limit")
-	SetInt(&AppConfig.BucketNum, "storage.bucket_num")
-	SetInt(&AppConfig.CleanInterval, "storage.clean_interval")
+	SetInt(&AppConfig.Storage.MemoryLimit, "storage.memory_limit")
+	SetInt(&AppConfig.Storage.BucketNum, "storage.bucket_num")
+	SetInt(&AppConfig.Storage.CleanInterval, "storage.clean_interval")
 
-	SetString(&AppConfig.LogDir, "log.dir")
-	AppConfig.LogDir = utils.AbsPath(AppConfig.LogDir)
-	SetString(&AppConfig.LogFile, "log.file")
-	SetInt(&AppConfig.LogLevel, "log.level")
+	SetString(&AppConfig.Log.Dir, "log.dir")
+	AppConfig.Log.Dir = utils.AbsPath(AppConfig.Log.Dir)
+	SetString(&AppConfig.Log.File, "log.file")
+	SetInt(&AppConfig.Log.Level, "log.level")
 
-	return  checkConfig()
+	SetString(&AppConfig.Reg.ETCD, "registry.etcd")
+	SetString(&AppConfig.Reg.RegistryDir, "registry.registry_dir")
+	SetString(&AppConfig.Reg.ServiceName, "registry.service_name")
+	SetString(&AppConfig.Reg.NodeName, "registry.node_name")
+	SetString(&AppConfig.Reg.NodeAddr, "registry.node_addr")
+	SetInt(&AppConfig.Reg.TTL, "registry.ttl")
+
+	return checkConfig()
 }
 
 func checkConfig() error {
-	if AppConfig.BucketNum <= 0 {
+	if AppConfig.Storage.BucketNum <= 0 {
 		return errors.New("Bucket number must bee greater than 0")
 	}
+	//todo : check other items
 	return nil
 }

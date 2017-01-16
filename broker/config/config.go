@@ -5,20 +5,24 @@ import (
 	"github.com/spf13/viper"
 )
 
-
 type Config struct {
-	//grpc server
 	//log
-	LogDir   string
-	LogFile  string
-	LogLevel int
+	Log LogCfg
+}
+
+type LogCfg struct {
+	Dir   string
+	File  string
+	Level int
 }
 
 //Default Configure
 var AppConfig = &Config{
-	LogDir:   "./log",
-	LogFile:  "broker.log",
-	LogLevel: 0,
+	Log: LogCfg{
+		Dir:   "./log",
+		File:  "broker.log",
+		Level: 0,
+	},
 }
 
 func InitConfig(path string) error {
@@ -41,10 +45,10 @@ func InitConfig(path string) error {
 		}
 	}
 
-	SetString(&AppConfig.LogDir, "log.dir")
-	AppConfig.LogDir = utils.AbsPath(AppConfig.LogDir)
-	SetString(&AppConfig.LogFile, "log.file")
-	SetInt(&AppConfig.LogLevel, "log.level")
+	SetString(&AppConfig.Log.Dir, "log.dir")
+	AppConfig.Log.Dir = utils.AbsPath(AppConfig.Log.Dir)
+	SetString(&AppConfig.Log.File, "log.file")
+	SetInt(&AppConfig.Log.Level, "log.level")
 
 	return nil
 }

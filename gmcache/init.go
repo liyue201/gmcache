@@ -9,11 +9,11 @@ import (
 )
 
 func InitLog() error {
-	if !utils.PathExist(config.AppConfig.LogDir) {
-		os.MkdirAll(config.AppConfig.LogDir, os.ModePerm)
+	if !utils.PathExist(config.AppConfig.Log.Dir) {
+		os.MkdirAll(config.AppConfig.Log.Dir, os.ModePerm)
 	}
 
-	err := logger.Init(config.AppConfig.LogDir, config.AppConfig.LogFile, config.AppConfig.LogLevel)
+	err := logger.Init(config.AppConfig.Log.Dir, config.AppConfig.Log.File, config.AppConfig.Log.Level)
 	if err != nil {
 		fmt.Println("logger init error err=", err)
 		return err

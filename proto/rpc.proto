@@ -14,7 +14,7 @@ enum RCODE {
 
 message SetOptArg {
     string  key    = 1;
-    bytes   val  = 2;
+    bytes   val    = 2;
     uint64  ttl    = 3;
 }
 

@@ -98,7 +98,7 @@ func (this *Storage) memUsedChanged(bytes int64) {
 //2.Delete all expired keys
 //3.Repet step 1 if there are over 25 keys have been deleted
 
-func (this *Storage) DeleteExpiredKeyRandom() {
+func (this *Storage) DeleteExpiredKeyRandom() int64 {
 	now := time.Now()
 	r := rand.New(rand.NewSource(now.Unix()))
 
@@ -132,5 +132,5 @@ func (this *Storage) DeleteExpiredKeyRandom() {
 			break
 		}
 	}
-	this.memUsedChanged(-totalDelBytes)
+	return  totalDelBytes
 }

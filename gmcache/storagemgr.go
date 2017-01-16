@@ -58,13 +58,14 @@ func (this *StorageManager) Delete(key string) error {
 }
 
 func (this *StorageManager) Run() {
-	keepAliveTicker := time.NewTicker(this.cleanInterval)
+	cleanTicker := time.NewTicker(this.cleanInterval)
 
 	for {
 		select {
-		case <-keepAliveTicker.C:
+		case <-cleanTicker.C:
 			for i := 0; i < this.bucketNum; i++ {
-				this.buckets[i].DeleteExpiredKeyRandom()
+				deletedBytes := this.buckets[i].DeleteExpiredKeyRandom()
+				atomic.AddInt64(&this.memeryUsed, -deletedBytes)
 			}
 		case deltaBytes := <-this.memChangedChan:
 			atomic.AddInt64(&this.memeryUsed, deltaBytes)

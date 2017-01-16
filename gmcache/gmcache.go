@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/apsdehal/go-logger"
 	"github.com/judwhite/go-svc/svc"
+	"github.com/liyue201/gmcache/gmcache/config"
 	"github.com/liyue201/gmcache/utils"
 	"log"
 	"syscall"
@@ -26,21 +27,18 @@ type gmcache struct {
 func (this *gmcache) Init(env svc.Environment) error {
 	AppDir := utils.GetAppDir()
 
-	if err := InitConfig(AppDir); err != nil {
+	if err := config.InitConfig(AppDir); err != nil {
 		log.Print("Init config:", err)
 		return err
 	}
-	if err := CheckConfig(); err != nil {
-		log.Print("Check config:", err)
-		return err
-	}
+
 	if err := InitLog(); err != nil {
 		return err
 	}
-	this.storage = NewStorageManager(AppConfig.BucketNum, int64(AppConfig.MemoryLimit)*1024,
-		time.Duration(AppConfig.CleanInterval*1000))
+	this.storage = NewStorageManager(config.AppConfig.BucketNum, int64(config.AppConfig.MemoryLimit)*1024,
+		time.Duration(config.AppConfig.CleanInterval*1000))
 
-	addr := fmt.Sprintf("0.0.0.0:%d", AppConfig.RpcPort)
+	addr := fmt.Sprintf("0.0.0.0:%d", config.AppConfig.RpcPort)
 	//log.Println("rpc addr:", addr)
 	this.rpcServer = NewRpcServer(addr, this.storage)
 	return nil

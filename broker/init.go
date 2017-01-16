@@ -1,12 +1,13 @@
-package gmcache
+package broker
 
 import (
 	"fmt"
 	"github.com/apsdehal/go-logger"
 	"github.com/liyue201/gmcache/utils"
-	"github.com/liyue201/gmcache/gmcache/config"
+	"github.com/liyue201/gmcache/broker/config"
 	"os"
 )
+
 
 func InitLog() error {
 	if !utils.PathExist(config.AppConfig.LogDir) {

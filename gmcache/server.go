@@ -1,7 +1,7 @@
 package gmcache
 
 import (
-	"github.com/apsdehal/go-logger"
+	"github.com/codinl/go-logger"
 	"github.com/liyue201/gmcache/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -52,7 +52,6 @@ func (this *RpcServer) Stop() (err error) {
 	}
 	return err
 }
-
 
 func (this *RpcServer) Set(ctx context.Context, arg *proto.SetOptArg) (*proto.SetOptRet, error) {
 	logger.Debugf("RpcServer::Set(): in = %#v", arg)

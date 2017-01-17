@@ -1,0 +1,21 @@
+package: github.com/liyue201/gmcache
+import:
+- package: github.com/codinl/go-logger
+- package: github.com/coreos/etcd
+  subpackages:
+  - client
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/judwhite/go-svc
+  subpackages:
+  - svc
+- package: github.com/spf13/viper
+- package: github.com/wothing/wonaming
+  subpackages:
+  - lib
+- package: golang.org/x/net/context
+- package: google.golang.org/grpc
+  subpackages:
+  - grpclog
+  - naming

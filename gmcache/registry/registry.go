@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/apsdehal/go-logger"
+	"github.com/codinl/go-logger"
 	etcd "github.com/coreos/etcd/client"
 	"golang.org/x/net/context"
 	"strings"

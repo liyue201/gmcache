@@ -2,7 +2,7 @@ package gmcache
 
 import (
 	"fmt"
-	"github.com/apsdehal/go-logger"
+	"github.com/codinl/go-logger"
 	"github.com/liyue201/gmcache/utils"
 	"github.com/liyue201/gmcache/gmcache/config"
 	"os"

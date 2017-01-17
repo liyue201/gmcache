@@ -3,12 +3,21 @@ package config
 import (
 	"github.com/liyue201/gmcache/utils"
 	"github.com/spf13/viper"
+	"log"
 )
 
 type Config struct {
 	//log
-	Log LogCfg
+	Log       LogCfg
+	Discovery DiscoveryCfg
 }
+
+type DiscoveryCfg struct {
+	Etcd        string
+	RegistryDir string
+	ServiceName string
+}
+
 
 type LogCfg struct {
 	Dir   string
@@ -18,6 +27,11 @@ type LogCfg struct {
 
 //Default Configure
 var AppConfig = &Config{
+	Discovery: DiscoveryCfg{
+		Etcd:        "127.0.0.1:4001",
+		RegistryDir: "/dev",
+		ServiceName: "gmcache",
+	},
 	Log: LogCfg{
 		Dir:   "./log",
 		File:  "broker.log",
@@ -26,7 +40,10 @@ var AppConfig = &Config{
 }
 
 func InitConfig(path string) error {
+	log.Println("InitConfig: path=", path)
+
 	viper.AddConfigPath(path)
+	//viper.AddConfigPath(path)
 	viper.SetConfigFile("broker.conf")
 	viper.SetConfigType("json")
 	err := viper.ReadInConfig()
@@ -44,6 +61,10 @@ func InitConfig(path string) error {
 			*in = viper.GetInt(key)
 		}
 	}
+
+	SetString(&AppConfig.Discovery.Etcd, "discovery.etcd")
+	SetString(&AppConfig.Discovery.RegistryDir, "discovery.registry_dir")
+	SetString(&AppConfig.Discovery.ServiceName, "discovery.service_name")
 
 	SetString(&AppConfig.Log.Dir, "log.dir")
 	AppConfig.Log.Dir = utils.AbsPath(AppConfig.Log.Dir)

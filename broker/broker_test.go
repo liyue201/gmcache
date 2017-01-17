@@ -4,13 +4,25 @@ import (
 
 	"github.com/liyue201/gmcache/broker/rpc"
 	"github.com/liyue201/gmcache/proto"
-	"golang.org/x/net/context"
 	"testing"
+	"github.com/liyue201/gmcache/broker/config"
+	"log"
 )
 
+func initTest()  {
+	if err := config.InitConfig(`.`); err != nil {
+		log.Print("Init config:", err)
+		return
+	}
+
+	if err := InitLog(); err != nil {
+		return
+	}
+}
 
 //go test -v -run="TestSet"
 func TestSet(t *testing.T)  {
+	initTest()
 
 	conn, err := rpc.GetClientConn()
 	if err != nil {
@@ -28,7 +40,7 @@ func TestSet(t *testing.T)  {
 		Ttl: 1000,
 	}
 
-	ret, err := c.Set(context.Background(), &SetArg)
+	ret, err := c.Set(rpc.NewRpcContext(SetArg.Key), &SetArg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -38,6 +50,7 @@ func TestSet(t *testing.T)  {
 
 //go test -v -run="TestGet"
 func TestGet(t *testing.T)  {
+	initTest()
 
 	conn, err := rpc.GetClientConn()
 	if err != nil {
@@ -53,7 +66,7 @@ func TestGet(t *testing.T)  {
 		Key: "test",
 	}
 
-	ret, err := c.Get(context.Background(), &arg)
+	ret, err := c.Get(rpc.NewRpcContext(arg.Key), &arg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -61,9 +74,9 @@ func TestGet(t *testing.T)  {
 	t.Logf("ret=%#v", ret)
 }
 
-
 //go test -v -run="TestDelete"
 func TestDelete(t *testing.T)  {
+	initTest()
 
 	conn, err := rpc.GetClientConn()
 	if err != nil {
@@ -79,7 +92,7 @@ func TestDelete(t *testing.T)  {
 		Key: "test",
 	}
 
-	ret, err := c.Delete(context.Background(), &delArg)
+	ret, err := c.Delete(rpc.NewRpcContext(delArg.Key), &delArg)
 	if err != nil {
 		t.Error(err)
 		return

@@ -4,13 +4,14 @@ import (
 	"github.com/codinl/go-logger"
 	"google.golang.org/grpc"
 	"sync"
+	"github.com/liyue201/gmcache/broker/config"
 )
 
 
 var lock sync.Mutex
 var clientConn *grpc.ClientConn
 
-var LOCAL_TEST = true
+var LOCAL_TEST = false
 var LOCAL_RPC_ADDR = "127.0.0.1:55555"
 
 func dial() (*grpc.ClientConn, error) {
@@ -20,17 +21,17 @@ func dial() (*grpc.ClientConn, error) {
 	if LOCAL_TEST {
 		c, err = grpc.Dial(LOCAL_RPC_ADDR, grpc.WithInsecure())
 	}else {
-		//etcd := viper.GetString("iot_rpc.etcd")
-		//registryDir := viper.GetString("iot_rpc.registry_dir")
-		//serviceName := viper.GetString("iot_rpc.service_name")
+		logger.Info("etcd =", config.AppConfig.Discovery.Etcd)
+		logger.Info("registryDir =", config.AppConfig.Discovery.RegistryDir)
+		logger.Info("serviceName =", config.AppConfig.Discovery.ServiceName)
 
-		//logger.Info("etcd =", etcd)
-		//logger.Info("registryDir =", registryDir)
-		//logger.Info("serviceName =", serviceName)
+		//log.Println("etcd =", config.AppConfig.Discovery.Etcd)
+		//log.Println("registryDir =", config.AppConfig.Discovery.RegistryDir)
+		//log.Println("serviceName =", config.AppConfig.Discovery.ServiceName)
 
-		//r := NewResolver(registryDir, serviceName)
-		//b := grpc.RoundRobin(r)
-		//c, err = grpc.Dial(etcd, grpc.WithInsecure(), grpc.WithBalancer(b))
+		r := NewResolver(config.AppConfig.Discovery.RegistryDir, config.AppConfig.Discovery.ServiceName)
+		b := NewKetamaBalancer(r)
+		c, err = grpc.Dial(config.AppConfig.Discovery.Etcd, grpc.WithInsecure(), grpc.WithBalancer(b))
 	}
 
 	if err != nil {

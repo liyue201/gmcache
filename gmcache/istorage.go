@@ -6,7 +6,7 @@ import (
 )
 
 var EXPIRED_ERROR error = errors.New("Expire error")
-var KEY_NOT_EXIST_ERROR error = errors.New("Expire error")
+var KEY_NOT_EXIST_ERROR error = errors.New("Key not exist error")
 var OUT_OF_MEMORY_LIMIT_ERROR error = errors.New("Out of memory limit error")
 
 type IStorage interface {

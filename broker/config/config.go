@@ -8,8 +8,14 @@ import (
 
 type Config struct {
 	//log
-	Log       LogCfg
+	Service   ServiceCfg
 	Discovery DiscoveryCfg
+	Log       LogCfg
+}
+
+type ServiceCfg struct {
+	HttpPort int
+	RpcPort  int
 }
 
 type DiscoveryCfg struct {
@@ -17,7 +23,6 @@ type DiscoveryCfg struct {
 	RegistryDir string
 	ServiceName string
 }
-
 
 type LogCfg struct {
 	Dir   string
@@ -27,6 +32,10 @@ type LogCfg struct {
 
 //Default Configure
 var AppConfig = &Config{
+	Service: ServiceCfg{
+		HttpPort: 8001,
+		RpcPort: 8002,
+	},
 	Discovery: DiscoveryCfg{
 		Etcd:        "127.0.0.1:4001",
 		RegistryDir: "/dev",
@@ -61,6 +70,8 @@ func InitConfig(path string) error {
 			*in = viper.GetInt(key)
 		}
 	}
+	SetInt(&AppConfig.Service.HttpPort, "service.http_port")
+	SetInt(&AppConfig.Service.RpcPort, "service.rpc_port")
 
 	SetString(&AppConfig.Discovery.Etcd, "discovery.etcd")
 	SetString(&AppConfig.Discovery.RegistryDir, "discovery.registry_dir")

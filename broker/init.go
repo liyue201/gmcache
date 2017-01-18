@@ -1,11 +1,12 @@
 package broker
 
 import (
-	"fmt"
+	"log"
 	"github.com/codinl/go-logger"
 	"github.com/liyue201/gmcache/utils"
 	"github.com/liyue201/gmcache/broker/config"
 	"os"
+	"fmt"
 )
 
 
@@ -22,6 +23,6 @@ func InitLog() error {
 
 	logger.SetConsole(true)
 
-	fmt.Println("logger init success")
+	log.Println("logger init success")
 	return nil
 }

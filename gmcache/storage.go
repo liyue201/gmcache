@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-//the implementation of IStorage
+
 type Storage struct {
 	sync.RWMutex
 	m              map[string]*KVItem

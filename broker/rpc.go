@@ -6,8 +6,8 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net"
+	"errors"
 	"github.com/liyue201/gmcache/broker/rpc"
-	"github.com/pkg/errors"
 )
 
 var ServerInternalError  = errors.New("Server internal error")

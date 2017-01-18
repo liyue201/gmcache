@@ -1,13 +1,14 @@
 package broker
 
 import (
-	"github.com/liyue201/gmcache/broker/config"
-	"github.com/liyue201/gmcache/utils"
-	"log"
+	"fmt"
 	"github.com/codinl/go-logger"
 	"github.com/judwhite/go-svc/svc"
+	"github.com/liyue201/gmcache/broker/config"
+	"github.com/liyue201/gmcache/utils"
+	"github.com/liyue201/martini"
+	"log"
 	"syscall"
-	"fmt"
 )
 
 func Main() {
@@ -20,6 +21,7 @@ func Main() {
 type broker struct {
 	utils.WaitGroupWrapper
 	rpcServer  IRpcServer
+	httpServer *martini.ClassicMartini
 }
 
 func (this *broker) Init(env svc.Environment) error {
@@ -33,8 +35,12 @@ func (this *broker) Init(env svc.Environment) error {
 	if err := InitLog(); err != nil {
 		return err
 	}
-	addr := fmt.Sprintf("0.0.0.0:%d", config.AppConfig.Service.RpcPort)
-	this.rpcServer = NewRpcServer(addr)
+	rpcAddr := fmt.Sprintf("0.0.0.0:%d", config.AppConfig.Service.RpcPort)
+	this.rpcServer = NewRpcServer(rpcAddr)
+
+	httpServer := martini.Classic()
+	InitRouter(httpServer)
+	this.httpServer = httpServer
 
 	return nil
 }
@@ -45,15 +51,20 @@ func (this *broker) Start() error {
 	this.Wrap(func() {
 		this.rpcServer.Run()
 	})
+
+	this.Wrap(func() {
+		httpAddr := fmt.Sprintf("0.0.0.0:%d", config.AppConfig.Service.HttpPort)
+		this.httpServer.RunOnAddr(httpAddr)
+	})
+
 	return nil
 }
 
 func (this *broker) Stop() error {
 	this.rpcServer.Stop()
-
+	this.httpServer.Stop()
 	this.Wait()
 
 	logger.Println("broker stopped")
 	return nil
 }
-

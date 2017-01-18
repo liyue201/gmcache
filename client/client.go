@@ -1,10 +1,10 @@
 package client
 
 import (
-	"github.com/codinl/go-logger"
 	"google.golang.org/grpc"
 	"github.com/liyue201/gmcache/proto"
 	"context"
+	"github.com/codinl/go-logger"
 )
 
 type Client struct {
@@ -19,7 +19,6 @@ func NewClient(addr string) *Client {
 func (this *Client) Connect() error {
 	c, err := grpc.Dial(this.addr, grpc.WithInsecure())
 	if err != nil {
-		logger.Errorf("grpc dial: %s", err.Error())
 		return err
 	}
 	this.conn = c

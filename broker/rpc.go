@@ -49,6 +49,7 @@ func (this *RpcServer) Run() error {
 func (this *RpcServer) Stop() (err error) {
 	if this.listener != nil {
 		err = this.listener.Close()
+		rpc.CloseClientConn()
 		this.listener = nil
 	}
 	return err
@@ -66,12 +67,6 @@ func (this *RpcServer) Set(ctx context.Context, arg *proto.SetOptArg) (*proto.Se
 		return ret, ServerInternalError
 	}
 	client := proto.NewRpcServiceClient(conn)
-	if client == nil {
-		logger.Errorf("RpcServer Set: NewRpcServiceClient error")
-		ret.Code = proto.RCODE_FAILURE
-		return ret, ServerInternalError
-	}
-
 	ret, err = client.Set(rpc.NewRpcContext(arg.Key), arg)
 	if err != nil {
 		logger.Errorf("RpcServer Set:", err)
@@ -91,12 +86,6 @@ func (this *RpcServer) Get(ctx context.Context, arg *proto.GetOptArg) (*proto.Ge
 		return ret, ServerInternalError
 	}
 	client := proto.NewRpcServiceClient(conn)
-	if client == nil {
-		logger.Errorf("RpcServer Get: NewRpcServiceClient error")
-		ret.Code = proto.RCODE_FAILURE
-		return ret, ServerInternalError
-	}
-
 	ret, err = client.Get(rpc.NewRpcContext(arg.Key), arg)
 	if err != nil {
 		logger.Errorf("RpcServer Set:", err)
@@ -117,11 +106,6 @@ func (this *RpcServer) Delete(ctx context.Context, arg *proto.DelOptArg) (*proto
 		return ret, ServerInternalError
 	}
 	client := proto.NewRpcServiceClient(conn)
-	if client == nil {
-		logger.Errorf("RpcServer Delete: NewRpcServiceClient error")
-		ret.Code = proto.RCODE_FAILURE
-		return ret, ServerInternalError
-	}
 
 	ret, err = client.Delete(rpc.NewRpcContext(arg.Key), arg)
 	if err != nil {

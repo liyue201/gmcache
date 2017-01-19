@@ -39,9 +39,9 @@ type DelReq struct {
 }
 
 func InitRouter(m *martini.ClassicMartini) {
-	m.Post("(/set)", binding.Bind(SetReq{}), doSet)
-	m.Post("(/get)", binding.Bind(GetReq{}), doGet)
-	m.Post("(/del)", binding.Bind(DelReq{}), doDelete)
+	m.Post("(v1/set)", binding.Bind(SetReq{}), doSet)
+	m.Post("(v1/get)", binding.Bind(GetReq{}), doGet)
+	m.Post("(v1/del)", binding.Bind(DelReq{}), doDelete)
 }
 
 func doSet(resp http.ResponseWriter, req *http.Request, r SetReq) {

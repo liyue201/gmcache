@@ -12,7 +12,7 @@ type KVItem struct {
 
 func (this *KVItem) expired() bool {
 	if int64(this.expire) < time.Now().UnixNano() {
-		return false
+		return true
 	}
-	return true
+	return false
 }

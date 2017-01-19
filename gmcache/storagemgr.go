@@ -38,7 +38,7 @@ func (this *StorageManager) mapToIndex(key string) int {
 	return int(crc32.ChecksumIEEE([]byte(key))) % this.bucketNum
 }
 
-func (this *StorageManager) findStorage(key string) IStorage {
+func (this *StorageManager) findStorage(key string) *Storage {
 	return this.buckets[this.mapToIndex(key)]
 }
 

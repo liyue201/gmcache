@@ -4,7 +4,6 @@ import (
 	"google.golang.org/grpc"
 	"github.com/liyue201/gmcache/proto"
 	"context"
-	"github.com/codinl/go-logger"
 )
 
 type Client struct {

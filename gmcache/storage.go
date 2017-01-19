@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+	"github.com/codinl/go-logger"
 )
 
 
@@ -78,12 +79,16 @@ func (this *Storage) Delete(key string) error {
 
 func (this *Storage) deleteItem(item *KVItem) {
 	delete(this.m, item.key)
-	this.keys[this.keyIdx[item.key]] = this.keys[len(this.keys)-1]
+	keyIdx := this.keyIdx[item.key]
+	lastKey := this.keys[len(this.keys)-1]
+	this.keys[keyIdx] = lastKey
+	this.keyIdx[lastKey] = keyIdx
 	this.keys = this.keys[:len(this.keys)-1]
 	delete(this.keyIdx, item.key)
+	logger.Debug("delete:", item.key)
 }
 
-func (this *Storage) KeysNum() int {
+func (this *Storage) itemNum() int {
 	this.Lock()
 	defer this.Unlock()
 	return len(this.keys)
@@ -105,12 +110,9 @@ func (this *Storage) DeleteExpiredKeyRandom() int64 {
 	var totalDelBytes int64
 
 	for {
-		if this.KeysNum() < 100 {
-			break
-		}
-
+		itemNum := this.itemNum()
 		deletedCount := 0
-		for i := 0; i < 100; i++ {
+		for i := 0; i < 100 && i < itemNum ; i++ {
 			this.Lock()
 			n := len(this.keys)
 			if n == 0 {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/liyue201/gmcache/utils"
 	"github.com/spf13/viper"
+	"log"
 )
 
 type Config struct {
@@ -59,8 +60,9 @@ var AppConfig = &Config{
 }
 
 func InitConfig(path string) error {
-	viper.AddConfigPath(path)
-	viper.SetConfigFile("gmcache.conf")
+	log.Println("InitConfig:", path)
+
+	viper.SetConfigFile(path)
 	viper.SetConfigType("json")
 	err := viper.ReadInConfig()
 	if err != nil {

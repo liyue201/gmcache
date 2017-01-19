@@ -49,11 +49,9 @@ var AppConfig = &Config{
 }
 
 func InitConfig(path string) error {
-	log.Println("InitConfig: path=", path)
+	log.Println("InitConfig:", path)
 
-	viper.AddConfigPath(path)
-	//viper.AddConfigPath(path)
-	viper.SetConfigFile("broker.conf")
+	viper.SetConfigFile(path)
 	viper.SetConfigType("json")
 	err := viper.ReadInConfig()
 	if err != nil {

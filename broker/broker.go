@@ -9,9 +9,14 @@ import (
 	"github.com/liyue201/martini"
 	"log"
 	"syscall"
+	"flag"
+	"path/filepath"
 )
 
+var configPath *string = flag.String("c", "", "Use -c <config file path>")
+
 func Main() {
+	flag.Parse()
 	app := &broker{}
 	if err := svc.Run(app, syscall.SIGINT, syscall.SIGTERM); err != nil {
 		logger.Println(err)
@@ -25,9 +30,12 @@ type broker struct {
 }
 
 func (this *broker) Init(env svc.Environment) error {
-	AppDir := utils.GetAppDir()
 
-	if err := config.InitConfig(AppDir); err != nil {
+	defaultConfigPath := utils.GetAppDir()+ string(filepath.Separator) + "broker.conf"
+	if *configPath == "" {
+		*configPath = defaultConfigPath
+	}
+	if err := config.InitConfig(*configPath); err != nil {
 		log.Print("Init config:", err)
 		return err
 	}

@@ -10,7 +10,7 @@ import (
 )
 
 func initTest()  {
-	if err := config.InitConfig(`.`); err != nil {
+	if err := config.InitConfig("../apps/broker/broker.conf"); err != nil {
 		log.Print("Init config:", err)
 		return
 	}

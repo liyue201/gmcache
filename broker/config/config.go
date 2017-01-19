@@ -44,7 +44,7 @@ var AppConfig = &Config{
 	Log: LogCfg{
 		Dir:   "./log",
 		File:  "broker.log",
-		Level: 0,
+		Level: 0,   //0 debug, 1 info, 2 warn, 3 error
 	},
 }
 

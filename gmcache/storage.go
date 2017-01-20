@@ -1,26 +1,36 @@
 package gmcache
 
 import (
+	"github.com/codinl/go-logger"
 	"math/rand"
 	"sync"
 	"time"
-	"github.com/codinl/go-logger"
 )
 
+type KVItem struct {
+	value  []byte
+	expire time.Duration
+	keyIdx int //key index int Storage.keys
+}
 
 type Storage struct {
 	sync.RWMutex
-	m              map[string]*KVItem
-	keys           []string
-	keyIdx         map[string]int //key index in keys
+	keys           []string           //keys slide
+	m              map[string]*KVItem //key to item
 	memChangedChan chan int64
+}
+
+func (this *KVItem) expired() bool {
+	if int64(this.expire) < time.Now().UnixNano() {
+		return true
+	}
+	return false
 }
 
 func NewStorage(memChangedChan chan int64) *Storage {
 	return &Storage{
-		m:              make(map[string]*KVItem),
 		keys:           make([]string, 0),
-		keyIdx:         make(map[string]int),
+		m:              make(map[string]*KVItem),
 		memChangedChan: memChangedChan,
 	}
 }
@@ -36,14 +46,13 @@ func (this *Storage) Set(key string, value []byte, ttl time.Duration) error {
 		item.expire = time.Duration(time.Now().UnixNano()) + ttl
 	} else {
 		newItem := &KVItem{
-			key:    key,
 			value:  value,
 			expire: time.Duration(time.Now().UnixNano()) + ttl,
+			keyIdx: len(this.keys),
 		}
 		this.m[key] = newItem
 		this.keys = append(this.keys, key)
-		this.keyIdx[key] = len(this.keys) - 1
-		this.memUsedChanged(int64(len(key) + len(value)))
+		this.memUsedChanged(int64(len(key)*2 + len(value)))
 	}
 
 	return nil
@@ -56,8 +65,8 @@ func (this *Storage) Get(key string) (*KVItem, error) {
 	item, ok := this.m[key]
 	if ok {
 		if item.expired() {
-			this.deleteItem(item)
-			this.memUsedChanged(int64(-len(item.key) - len(item.value)))
+			this.deleteItem(key, item)
+			this.memUsedChanged(int64(-len(key)*2 - len(item.value)))
 			return nil, EXPIRED_ERROR
 		}
 		return item, nil
@@ -71,21 +80,21 @@ func (this *Storage) Delete(key string) error {
 
 	item, ok := this.m[key]
 	if ok {
-		this.deleteItem(item)
-		this.memUsedChanged(int64(-len(item.key) - len(item.value)))
+		this.deleteItem(key, item)
+		this.memUsedChanged(int64(-len(key)*2 - len(item.value)))
 	}
 	return nil
 }
 
-func (this *Storage) deleteItem(item *KVItem) {
-	delete(this.m, item.key)
-	keyIdx := this.keyIdx[item.key]
+func (this *Storage) deleteItem(key string, item *KVItem) {
 	lastKey := this.keys[len(this.keys)-1]
-	this.keys[keyIdx] = lastKey
-	this.keyIdx[lastKey] = keyIdx
+	this.keys[item.keyIdx] = lastKey
+	this.m[lastKey].keyIdx = item.keyIdx
+
 	this.keys = this.keys[:len(this.keys)-1]
-	delete(this.keyIdx, item.key)
-	logger.Debug("delete:", item.key)
+	delete(this.m, key)
+
+	logger.Debug("delete:", key)
 }
 
 func (this *Storage) itemNum() int {
@@ -99,7 +108,7 @@ func (this *Storage) memUsedChanged(bytes int64) {
 }
 
 //Refer to redis's mechanism
-//1.Rest 100 keys
+//1.Test 100 keys
 //2.Delete all expired keys
 //3.Repet step 1 if there are over 25 keys have been deleted
 
@@ -112,7 +121,7 @@ func (this *Storage) DeleteExpiredKeyRandom() int64 {
 	for {
 		itemNum := this.itemNum()
 		deletedCount := 0
-		for i := 0; i < 100 && i < itemNum ; i++ {
+		for i := 0; i < 100 && i < itemNum; i++ {
 			this.Lock()
 			n := len(this.keys)
 			if n == 0 {
@@ -123,8 +132,8 @@ func (this *Storage) DeleteExpiredKeyRandom() int64 {
 			key := this.keys[index]
 			item := this.m[key]
 			if int64(item.expire) < now.UnixNano() {
-				this.deleteItem(item)
-				totalDelBytes += int64(len(item.key) + len(item.value))
+				this.deleteItem(key, item)
+				totalDelBytes += int64(len(key) + len(item.value))
 				deletedCount++
 			}
 			this.Unlock()
@@ -134,5 +143,5 @@ func (this *Storage) DeleteExpiredKeyRandom() int64 {
 			break
 		}
 	}
-	return  totalDelBytes
+	return totalDelBytes
 }

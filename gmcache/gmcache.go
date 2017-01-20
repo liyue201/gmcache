@@ -44,7 +44,7 @@ func (this *gmcache) Init(env svc.Environment) error {
 	if err := InitLog(); err != nil {
 		return err
 	}
-	this.storage = NewStorageManager(config.AppConfig.Storage.BucketNum, int64(config.AppConfig.Storage.MemoryLimit)*1024,
+	this.storage = NewStorageManager(config.AppConfig.Storage.BucketNum, int64(config.AppConfig.Storage.MemoryLimit)*1024*1024,
 		time.Duration(time.Duration(config.AppConfig.Storage.CleanInterval)*time.Second))
 
 	addr := fmt.Sprintf("0.0.0.0:%d", config.AppConfig.RpcPort)

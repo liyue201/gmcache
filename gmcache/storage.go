@@ -8,9 +8,9 @@ import (
 )
 
 type KVItem struct {
-	value  []byte
-	expire time.Duration
-	keyIdx int //key index int Storage.keys
+	value      []byte
+	expiration time.Duration
+	keyIdx     int //key index int Storage.keys
 }
 
 type Storage struct {
@@ -21,7 +21,7 @@ type Storage struct {
 }
 
 func (this *KVItem) expired() bool {
-	if int64(this.expire) < time.Now().UnixNano() {
+	if int64(this.expiration) < time.Now().UnixNano() {
 		return true
 	}
 	return false
@@ -43,12 +43,12 @@ func (this *Storage) Set(key string, value []byte, ttl time.Duration) error {
 	if ok {
 		this.memUsedChanged(int64(len(value) - len(item.value)))
 		item.value = value
-		item.expire = time.Duration(time.Now().UnixNano()) + ttl
+		item.expiration = time.Duration(time.Now().UnixNano()) + ttl
 	} else {
 		newItem := &KVItem{
-			value:  value,
-			expire: time.Duration(time.Now().UnixNano()) + ttl,
-			keyIdx: len(this.keys),
+			value:      value,
+			expiration: time.Duration(time.Now().UnixNano()) + ttl,
+			keyIdx:     len(this.keys),
 		}
 		this.m[key] = newItem
 		this.keys = append(this.keys, key)
@@ -60,13 +60,20 @@ func (this *Storage) Set(key string, value []byte, ttl time.Duration) error {
 
 func (this *Storage) Get(key string) (*KVItem, error) {
 	this.RLock()
-	defer this.RUnlock()
-
 	item, ok := this.m[key]
+	this.RUnlock()
+
 	if ok {
 		if item.expired() {
-			this.deleteItem(key, item)
-			this.memUsedChanged(int64(-len(key)*2 - len(item.value)))
+
+			this.Lock()  //Prevent duplicate delete
+			item, ok := this.m[key]
+			if ok {
+				this.deleteItem(key, item)
+				this.memUsedChanged(int64(-len(key)*2 - len(item.value)))
+			}
+			this.Unlock()
+
 			return nil, EXPIRED_ERROR
 		}
 		return item, nil
@@ -131,7 +138,7 @@ func (this *Storage) DeleteExpiredKeyRandom() int64 {
 			index := int(r.Int31n(int32(n)))
 			key := this.keys[index]
 			item := this.m[key]
-			if int64(item.expire) < now.UnixNano() {
+			if int64(item.expiration) < now.UnixNano() {
 				this.deleteItem(key, item)
 				totalDelBytes += int64(len(key) + len(item.value))
 				deletedCount++

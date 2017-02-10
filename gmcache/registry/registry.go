@@ -70,6 +70,7 @@ func (client *EtcdReigistryClient) Register() error {
 		case <-keepAliveTicker.C:
 			insertFunc()
 		case <-client.stop:
+			client.keyapi.Delete(context.Background(), client.key, &etcd.DeleteOptions{Recursive: true})
 			return nil
 		}
 	}
@@ -79,6 +80,5 @@ func (client *EtcdReigistryClient) Register() error {
 
 func (client *EtcdReigistryClient) Unregister() error {
 	close(client.stop)
-	_, err := client.keyapi.Delete(context.Background(), client.key, &etcd.DeleteOptions{Recursive: true})
-	return err
+	return nil
 }

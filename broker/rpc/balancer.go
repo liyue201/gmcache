@@ -88,7 +88,7 @@ func (this *KetamaBalancer) watchAddrUpdates() error {
 	return nil
 }
 
-func (this *KetamaBalancer) Start(target string) error {
+func (this *KetamaBalancer) Start(target string, config grpc.BalancerConfig) error {
 	if this.r == nil {
 		// If there is no name resolver installed, it is not needed to
 		// do name resolution. In this case, target is added into rr.addrs

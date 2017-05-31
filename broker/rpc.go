@@ -47,11 +47,7 @@ func (this *RpcServer) Run() error {
 }
 
 func (this *RpcServer) Stop() (err error) {
-	if this.listener != nil {
-		err = this.listener.Close()
-		rpc.CloseClientConn()
-		this.listener = nil
-	}
+	this.s.GracefulStop()
 	return err
 }
 

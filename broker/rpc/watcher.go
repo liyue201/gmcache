@@ -1,8 +1,6 @@
 package rpc
 
 import (
-	"fmt"
-
 	etcd "github.com/coreos/etcd/client"
 	wlib "github.com/wothing/wonaming/lib"
 	"golang.org/x/net/context"
@@ -11,42 +9,59 @@ import (
 
 // EtcdWatcher is the implementaion of grpc.naming.Watcher
 type EtcdWatcher struct {
-	resolver   *EtcdResolver
-	etcdClient *etcd.Client
-	addrs      []string
+	key     string
+	keyapi  etcd.KeysAPI
+	watcher etcd.Watcher
+	addrs   []string
+	ctx     context.Context
+	cancel  context.CancelFunc
 }
 
-func (ew *EtcdWatcher) Close() {
+func (w *EtcdWatcher) Close() {
+	w.cancel()
+	<-w.ctx.Done()
 }
 
-func (ew *EtcdWatcher) Next() ([]*naming.Update, error) {
-	key := fmt.Sprintf("%s/%s", ew.resolver.RegistryDir, ew.resolver.ServiceName)
+func newEtcdWatcher(key string, cli etcd.Client) naming.Watcher {
 
-	keyapi := etcd.NewKeysAPI(*ew.etcdClient)
+	api := etcd.NewKeysAPI(cli)
+	watcher := api.Watcher(key, &etcd.WatcherOptions{Recursive: true})
+	ctx, cancel := context.WithCancel(context.Background())
 
-	if ew.addrs == nil {
-		resp, _ := keyapi.Get(context.Background(), key, &etcd.GetOptions{Recursive: true})
+	w := &EtcdWatcher{
+		key:     key,
+		keyapi:  api,
+		watcher: watcher,
+		ctx:     ctx,
+		cancel:  cancel,
+	}
+	return w
+}
+
+func (w *EtcdWatcher) Next() ([]*naming.Update, error) {
+
+	if w.addrs == nil {
+		resp, _ := w.keyapi.Get(context.Background(), w.key, &etcd.GetOptions{Recursive: true})
 		addrs := extractAddrs(resp)
 
 		if len(addrs) != 0 {
-			ew.addrs = addrs
+			w.addrs = addrs
 			return wlib.GenUpdates([]string{}, addrs), nil
 		}
 	}
 
-	w := keyapi.Watcher(key, &etcd.WatcherOptions{Recursive: true})
 	for {
-		_, err := w.Next(context.Background())
+		_, err := w.watcher.Next(w.ctx)
 		if err == nil {
-			resp, err := keyapi.Get(context.Background(), key, &etcd.GetOptions{Recursive: true})
+			resp, err := w.keyapi.Get(w.ctx, w.key, &etcd.GetOptions{Recursive: true})
 			if err != nil {
 				continue
 			}
 
 			addrs := extractAddrs(resp)
 
-			updates := wlib.GenUpdates(ew.addrs, addrs)
-			ew.addrs = addrs
+			updates := wlib.GenUpdates(w.addrs, addrs)
+			w.addrs = addrs
 			if len(updates) != 0 {
 				return updates, nil
 			}

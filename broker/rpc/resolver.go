@@ -3,7 +3,7 @@ package rpc
 import (
 	"errors"
 	"strings"
-
+	"fmt"
 	etcd "github.com/coreos/etcd/client"
 	"google.golang.org/grpc/naming"
 )
@@ -34,9 +34,6 @@ func (er *EtcdResolver) Resolve(target string) (naming.Watcher, error) {
 		return nil, err
 	}
 
-	watcher := &EtcdWatcher{
-		resolver: er,
-		etcdClient: &client,
-	}
-	return watcher, nil
+	key := fmt.Sprintf("%s/%s", er.RegistryDir, er.ServiceName)
+	return newEtcdWatcher(key, client), nil
 }

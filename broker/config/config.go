@@ -34,7 +34,7 @@ type LogCfg struct {
 var AppConfig = &Config{
 	Service: ServiceCfg{
 		HttpPort: 8001,
-		RpcPort: 8002,
+		RpcPort:  8002,
 	},
 	Discovery: DiscoveryCfg{
 		Etcd:        "127.0.0.1:4001",
@@ -44,7 +44,7 @@ var AppConfig = &Config{
 	Log: LogCfg{
 		Dir:   "./log",
 		File:  "broker.log",
-		Level: 0,   //0 debug, 1 info, 2 warn, 3 error
+		Level: 0, //0 debug, 1 info, 2 warn, 3 error
 	},
 }
 

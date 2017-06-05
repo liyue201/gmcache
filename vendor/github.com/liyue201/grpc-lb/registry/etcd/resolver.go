@@ -1,11 +1,11 @@
-package rpc
+package etcd
 
 import (
 	"errors"
-	"strings"
 	"fmt"
 	etcd "github.com/coreos/etcd/client"
 	"google.golang.org/grpc/naming"
+	"strings"
 )
 
 // EtcdResolver is an implementation of grpc.naming.Resolver
@@ -14,8 +14,8 @@ type EtcdResolver struct {
 	ServiceName string
 }
 
-func NewResolver(registryDir, serviceName string) *EtcdResolver {
-	return &EtcdResolver{RegistryDir: registryDir,  ServiceName: serviceName}
+func NewResolver(registryDir, serviceName string) naming.Resolver {
+	return &EtcdResolver{RegistryDir: registryDir, ServiceName: serviceName}
 }
 
 // Resolve to resolve the service from etcd, target is the dial address of etcd

@@ -1,14 +1,13 @@
 package broker
 
 import (
-	"log"
-	"github.com/codinl/go-logger"
-	"github.com/liyue201/gmcache/utils"
-	"github.com/liyue201/gmcache/broker/config"
-	"os"
 	"fmt"
+	"github.com/codinl/go-logger"
+	"github.com/liyue201/gmcache/broker/config"
+	"github.com/liyue201/gmcache/utils"
+	"log"
+	"os"
 )
-
 
 func InitLog() error {
 	if !utils.PathExist(config.AppConfig.Log.Dir) {

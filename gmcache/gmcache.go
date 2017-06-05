@@ -1,17 +1,19 @@
 package gmcache
 
 import (
+	"flag"
 	"fmt"
 	"github.com/codinl/go-logger"
+	etcd "github.com/coreos/etcd/client"
 	"github.com/judwhite/go-svc/svc"
 	"github.com/liyue201/gmcache/gmcache/config"
-	"github.com/liyue201/gmcache/gmcache/registry"
 	"github.com/liyue201/gmcache/utils"
+	registry "github.com/liyue201/grpc-lb/registry/etcd"
 	"log"
+	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
-	"flag"
-	"path/filepath"
 )
 
 var configPath *string = flag.String("c", "", "Use -c <config file path>")
@@ -25,13 +27,13 @@ func Main() {
 
 type gmcache struct {
 	utils.WaitGroupWrapper
-	rpcServer  IRpcServer
-	storage    *StorageManager
-	etcdClient *registry.EtcdReigistryClient
+	rpcServer    IRpcServer
+	storage      *StorageManager
+	etcdRegistry *registry.EtcdReigistry
 }
 
 func (this *gmcache) Init(env svc.Environment) error {
-	defaultConfigPath := utils.GetAppDir()+ string(filepath.Separator) + "gmcache.conf"
+	defaultConfigPath := utils.GetAppDir() + string(filepath.Separator) + "gmcache.conf"
 	if *configPath == "" {
 		*configPath = defaultConfigPath
 	}
@@ -39,7 +41,6 @@ func (this *gmcache) Init(env svc.Environment) error {
 		log.Print("Init config:", err)
 		return err
 	}
-
 
 	if err := InitLog(); err != nil {
 		return err
@@ -50,14 +51,20 @@ func (this *gmcache) Init(env svc.Environment) error {
 	addr := fmt.Sprintf("0.0.0.0:%d", config.AppConfig.RpcPort)
 	this.rpcServer = NewRpcServer(addr, this.storage)
 
+	etcdConfig := etcd.Config{
+		Endpoints: strings.Split(config.AppConfig.Reg.ETCD, ","),
+	}
+
 	var err error
-	this.etcdClient, err = registry.NewClient(config.AppConfig.Reg.ETCD,
-		config.AppConfig.Reg.RegistryDir,
-		config.AppConfig.Reg.ServiceName,
-		config.AppConfig.Reg.NodeName,
-		config.AppConfig.Reg.NodeAddr,
-		time.Duration(time.Duration(config.AppConfig.Reg.TTL)*time.Second),
-	)
+	this.etcdRegistry, err = registry.NewRegistry(
+		registry.Option{
+			EtcdConfig:  etcdConfig,
+			RegistryDir: config.AppConfig.Reg.RegistryDir,
+			ServiceName: config.AppConfig.Reg.ServiceName,
+			NodeName:    config.AppConfig.Reg.NodeName,
+			NodeAddr:    config.AppConfig.Reg.NodeAddr,
+			Ttl:         time.Duration(time.Duration(config.AppConfig.Reg.TTL) * time.Second),
+		})
 
 	return err
 }
@@ -72,7 +79,7 @@ func (this *gmcache) Start() error {
 		this.storage.Run()
 	})
 	this.Wrap(func() {
-		this.etcdClient.Register()
+		this.etcdRegistry.Register()
 	})
 	return nil
 }
@@ -80,7 +87,7 @@ func (this *gmcache) Start() error {
 func (this *gmcache) Stop() error {
 	this.rpcServer.Stop()
 	this.storage.Stop()
-	this.etcdClient.Unregister()
+	this.etcdRegistry.Deregister()
 
 	this.Wait()
 

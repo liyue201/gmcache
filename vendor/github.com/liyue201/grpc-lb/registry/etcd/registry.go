@@ -1,14 +1,13 @@
-package registry
+package etcd
 
 import (
 	"github.com/codinl/go-logger"
 	etcd "github.com/coreos/etcd/client"
 	"golang.org/x/net/context"
-	"strings"
 	"time"
 )
 
-type EtcdReigistryClient struct {
+type EtcdReigistry struct {
 	keyapi etcd.KeysAPI
 	key    string
 	value  string
@@ -16,29 +15,33 @@ type EtcdReigistryClient struct {
 	stop   chan struct{}
 }
 
-func NewClient(etcdAddrs, registryDir, serviceName, nodeName, modeAdder string, ttl time.Duration) (*EtcdReigistryClient, error) {
-	endpoints := strings.Split(etcdAddrs, ",")
-	conf := etcd.Config{
-		Endpoints: endpoints,
-	}
+type Option struct {
+	EtcdConfig  etcd.Config
+	RegistryDir string
+	ServiceName string
+	NodeName    string
+	NodeAddr    string
+	Ttl         time.Duration
+}
 
-	client, err := etcd.New(conf)
+func NewRegistry(option Option) (*EtcdReigistry, error) {
+	client, err := etcd.New(option.EtcdConfig)
 	if err != nil {
 		return nil, err
 	}
 	keyapi := etcd.NewKeysAPI(client)
 
-	worker := &EtcdReigistryClient{
+	registry := &EtcdReigistry{
 		keyapi: keyapi,
-		key:    registryDir + "/" + serviceName + "/" + nodeName,
-		value:  modeAdder,
-		ttl:    ttl,
+		key:    option.RegistryDir + "/" + option.ServiceName + "/" + option.NodeName,
+		value:  option.NodeAddr,
+		ttl:    option.Ttl,
 		stop:   make(chan struct{}),
 	}
-	return worker, nil
+	return registry, nil
 }
 
-func (client *EtcdReigistryClient) Register() error {
+func (client *EtcdReigistry) Register() error {
 
 	insertFunc := func() error {
 		_, err := client.keyapi.Get(context.Background(), client.key, &etcd.GetOptions{Recursive: true})
@@ -78,7 +81,7 @@ func (client *EtcdReigistryClient) Register() error {
 	return nil
 }
 
-func (client *EtcdReigistryClient) Unregister() error {
+func (client *EtcdReigistry) Deregister() error {
 	close(client.stop)
 	return nil
 }

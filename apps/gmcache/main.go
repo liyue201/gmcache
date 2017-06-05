@@ -4,6 +4,6 @@ import (
 	"github.com/liyue201/gmcache/gmcache"
 )
 
-func main()  {
+func main() {
 	gmcache.Main()
 }

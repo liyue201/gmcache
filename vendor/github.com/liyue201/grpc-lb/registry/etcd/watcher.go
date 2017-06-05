@@ -1,8 +1,7 @@
-package rpc
+package etcd
 
 import (
 	etcd "github.com/coreos/etcd/client"
-	wlib "github.com/wothing/wonaming/lib"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/naming"
 )
@@ -12,7 +11,7 @@ type EtcdWatcher struct {
 	key     string
 	keyapi  etcd.KeysAPI
 	watcher etcd.Watcher
-	addrs   []string
+	updates []*naming.Update
 	ctx     context.Context
 	cancel  context.CancelFunc
 }
@@ -40,51 +39,50 @@ func newEtcdWatcher(key string, cli etcd.Client) naming.Watcher {
 
 func (w *EtcdWatcher) Next() ([]*naming.Update, error) {
 
-	if w.addrs == nil {
+	updates := []*naming.Update{}
+	if len(w.updates) == 0 {
 		resp, _ := w.keyapi.Get(context.Background(), w.key, &etcd.GetOptions{Recursive: true})
-		addrs := extractAddrs(resp)
 
-		if len(addrs) != 0 {
-			w.addrs = addrs
-			return wlib.GenUpdates([]string{}, addrs), nil
+		for _, n := range resp.Node.Nodes {
+			updates = append(updates, &naming.Update{
+				Op:   naming.Add,
+				Addr: n.Value,
+			})
+		}
+
+		if len(updates) != 0 {
+			w.updates = updates
+			return updates, nil
 		}
 	}
 
 	for {
-		_, err := w.watcher.Next(w.ctx)
-		if err == nil {
-			resp, err := w.keyapi.Get(w.ctx, w.key, &etcd.GetOptions{Recursive: true})
-			if err != nil {
-				continue
-			}
-
-			addrs := extractAddrs(resp)
-
-			updates := wlib.GenUpdates(w.addrs, addrs)
-			w.addrs = addrs
-			if len(updates) != 0 {
-				return updates, nil
-			}
+		resp, err := w.watcher.Next(w.ctx)
+		if err != nil {
+			return []*naming.Update{}, err
 		}
+
+		if resp.Node.Dir {
+			continue
+		}
+
+		updates := []*naming.Update{}
+
+		switch resp.Action {
+		case `set`, `update`, `create`:
+			updates = append(updates, &naming.Update{
+				Op:   naming.Add,
+				Addr: resp.Node.Value,
+			})
+		case `delete`, `expire`:
+			updates = append(updates, &naming.Update{
+				Op:   naming.Delete,
+				Addr: resp.PrevNode.Value,
+			})
+		}
+		return updates, nil
+
 	}
 
 	return []*naming.Update{}, nil
-}
-
-func extractAddrs(resp *etcd.Response) (addrs []string) {
-	addrs = []string{}
-
-	if resp == nil || resp.Node == nil || resp.Node.Nodes == nil || len(resp.Node.Nodes) == 0 {
-		return addrs
-	}
-
-	for _, node := range resp.Node.Nodes {
-		addr := node.Value
-
-		if addr != "" {
-			addrs = append(addrs, addr)
-		}
-	}
-
-	return addrs
 }

@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"flag"
 	"fmt"
 	"github.com/codinl/go-logger"
 	"github.com/judwhite/go-svc/svc"
@@ -8,9 +9,8 @@ import (
 	"github.com/liyue201/gmcache/utils"
 	"github.com/liyue201/martini"
 	"log"
-	"syscall"
-	"flag"
 	"path/filepath"
+	"syscall"
 )
 
 var configPath *string = flag.String("c", "", "Use -c <config file path>")
@@ -31,7 +31,7 @@ type broker struct {
 
 func (this *broker) Init(env svc.Environment) error {
 
-	defaultConfigPath := utils.GetAppDir()+ string(filepath.Separator) + "broker.conf"
+	defaultConfigPath := utils.GetAppDir() + string(filepath.Separator) + "broker.conf"
 	if *configPath == "" {
 		*configPath = defaultConfigPath
 	}

@@ -2,11 +2,12 @@ package rpc
 
 import (
 	"github.com/codinl/go-logger"
+	"github.com/liyue201/gmcache/broker/config"
+	"github.com/liyue201/grpc-lb"
+	registry "github.com/liyue201/grpc-lb/registry/etcd"
 	"google.golang.org/grpc"
 	"sync"
-	"github.com/liyue201/gmcache/broker/config"
 )
-
 
 var lock sync.Mutex
 var clientConn *grpc.ClientConn
@@ -20,13 +21,13 @@ func dial() (*grpc.ClientConn, error) {
 
 	if LOCAL_TEST {
 		c, err = grpc.Dial(LOCAL_RPC_ADDR, grpc.WithInsecure())
-	}else {
+	} else {
 		logger.Info("etcd =", config.AppConfig.Discovery.Etcd)
 		logger.Info("registryDir =", config.AppConfig.Discovery.RegistryDir)
 		logger.Info("serviceName =", config.AppConfig.Discovery.ServiceName)
 
-		r := NewResolver(config.AppConfig.Discovery.RegistryDir, config.AppConfig.Discovery.ServiceName)
-		b := NewKetamaBalancer(r)
+		r := registry.NewResolver(config.AppConfig.Discovery.RegistryDir, config.AppConfig.Discovery.ServiceName)
+		b := grpclb.NewBalancer(r, grpclb.NewKetamaSelector(grpclb.DefaultKetamaKey))
 		c, err = grpc.Dial(config.AppConfig.Discovery.Etcd, grpc.WithInsecure(), grpc.WithBalancer(b))
 	}
 

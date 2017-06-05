@@ -6,7 +6,9 @@ import (
 	"github.com/codinl/go-logger"
 	"github.com/liyue201/gmcache/broker/rpc"
 	"github.com/liyue201/gmcache/proto"
+	"github.com/liyue201/grpc-lb"
 	"github.com/liyue201/martini"
+	"golang.org/x/net/context"
 	"net/http"
 )
 
@@ -58,7 +60,7 @@ func doSet(resp http.ResponseWriter, req *http.Request, r SetReq) {
 	arg := &proto.SetOptArg{Key: r.Key, Val: []byte(r.Value), Ttl: r.Ttl}
 	client := proto.NewRpcServiceClient(conn)
 
-	_, err = client.Set(rpc.NewRpcContext(arg.Key), arg)
+	_, err = client.Set(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), arg)
 	if err != nil {
 		logger.Errorf("doSet:", err)
 		return
@@ -81,7 +83,7 @@ func doGet(resp http.ResponseWriter, req *http.Request, r GetReq) {
 	arg := &proto.GetOptArg{Key: r.Key}
 	client := proto.NewRpcServiceClient(conn)
 
-	ret, err := client.Get(rpc.NewRpcContext(arg.Key), arg)
+	ret, err := client.Get(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), arg)
 	if err != nil {
 		logger.Errorf("doGet:", err)
 		return
@@ -108,7 +110,7 @@ func doDelete(resp http.ResponseWriter, req *http.Request, r DelReq) {
 	arg := &proto.DelOptArg{Key: r.Key}
 	client := proto.NewRpcServiceClient(conn)
 
-	ret, err := client.Delete(rpc.NewRpcContext(arg.Key), arg)
+	ret, err := client.Delete(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), arg)
 	if err != nil {
 		logger.Errorf("doDel:", err)
 		return

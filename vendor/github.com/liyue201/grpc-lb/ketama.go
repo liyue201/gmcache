@@ -1,4 +1,4 @@
-package rpc
+package grpclb
 
 import (
 	"hash/crc32"

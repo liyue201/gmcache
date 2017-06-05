@@ -43,7 +43,7 @@ func (this *StorageManager) findStorage(key string) *Storage {
 }
 
 func (this *StorageManager) Set(key string, value []byte, ttl time.Duration) error {
-	if (int64(len(value) * 2) + atomic.LoadInt64(&this.memoryUsed)) > this.memoryLimit {
+	if (int64(len(value)*2) + atomic.LoadInt64(&this.memoryUsed)) > this.memoryLimit {
 		return OUT_OF_MEMORY_LIMIT_ERROR
 	}
 	return this.findStorage(key).Set(key, value, ttl)

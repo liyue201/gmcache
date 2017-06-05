@@ -96,6 +96,14 @@
 			"Rev": "2788f0dbd16903de03cb8186e5c7d97b69ad387b"
 		},
 		{
+			"ImportPath": "github.com/liyue201/grpc-lb",
+			"Rev": "0e515b5a0ca4a755c8bfa3cef28af5d85d4b5197"
+		},
+		{
+			"ImportPath": "github.com/liyue201/grpc-lb/registry/etcd",
+			"Rev": "0e515b5a0ca4a755c8bfa3cef28af5d85d4b5197"
+		},
+		{
 			"ImportPath": "github.com/liyue201/martini",
 			"Comment": "v1.0-189-gd2705a0",
 			"Rev": "d2705a093cf4e20c601a1bf794f72cbd7966a525"
@@ -158,10 +166,6 @@
 		{
 			"ImportPath": "github.com/ugorji/go/codec",
 			"Rev": "98ef79d6c615fa258e892ed0b11c6e013712693e"
-		},
-		{
-			"ImportPath": "github.com/wothing/wonaming/lib",
-			"Rev": "0f5a8023e50d6e8ed4f26dfb8940110cce1b1d32"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/curve25519",

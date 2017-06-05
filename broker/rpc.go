@@ -1,16 +1,17 @@
 package broker
 
 import (
+	"errors"
 	"github.com/codinl/go-logger"
+	"github.com/liyue201/gmcache/broker/rpc"
 	"github.com/liyue201/gmcache/proto"
+	"github.com/liyue201/grpc-lb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"net"
-	"errors"
-	"github.com/liyue201/gmcache/broker/rpc"
 )
 
-var ServerInternalError  = errors.New("Server internal error")
+var ServerInternalError = errors.New("Server internal error")
 
 type IRpcServer interface {
 	Run() error
@@ -26,8 +27,8 @@ type RpcServer struct {
 func NewRpcServer(addr string) IRpcServer {
 	s := grpc.NewServer()
 	rs := &RpcServer{
-		addr:    addr,
-		s:       s,
+		addr: addr,
+		s:    s,
 	}
 	return rs
 }
@@ -63,7 +64,7 @@ func (this *RpcServer) Set(ctx context.Context, arg *proto.SetOptArg) (*proto.Se
 		return ret, ServerInternalError
 	}
 	client := proto.NewRpcServiceClient(conn)
-	ret, err = client.Set(rpc.NewRpcContext(arg.Key), arg)
+	ret, err = client.Set(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), arg)
 	if err != nil {
 		logger.Errorf("RpcServer Set:", err)
 	}
@@ -82,7 +83,7 @@ func (this *RpcServer) Get(ctx context.Context, arg *proto.GetOptArg) (*proto.Ge
 		return ret, ServerInternalError
 	}
 	client := proto.NewRpcServiceClient(conn)
-	ret, err = client.Get(rpc.NewRpcContext(arg.Key), arg)
+	ret, err = client.Get(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), arg)
 	if err != nil {
 		logger.Errorf("RpcServer Set:", err)
 	}
@@ -103,7 +104,7 @@ func (this *RpcServer) Delete(ctx context.Context, arg *proto.DelOptArg) (*proto
 	}
 	client := proto.NewRpcServiceClient(conn)
 
-	ret, err = client.Delete(rpc.NewRpcContext(arg.Key), arg)
+	ret, err = client.Delete(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), arg)
 	if err != nil {
 		logger.Errorf("RpcServer Delete:", err)
 	}

@@ -66,7 +66,7 @@ func (this *Storage) Get(key string) (*KVItem, error) {
 	if ok {
 		if item.expired() {
 
-			this.Lock()  //Prevent duplicate delete
+			this.Lock() //Prevent duplicate delete
 			item, ok := this.m[key]
 			if ok {
 				this.deleteItem(key, item)

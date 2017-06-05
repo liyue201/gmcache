@@ -1,9 +1,9 @@
 package main
 
-import(
+import (
 	"github.com/liyue201/gmcache/broker"
 )
 
-func main()  {
+func main() {
 	broker.Main()
 }

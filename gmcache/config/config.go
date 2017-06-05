@@ -47,7 +47,7 @@ var AppConfig = &Config{
 	Log: LogCfg{
 		Dir:   "./log",
 		File:  "gmcache.log",
-		Level: 0,  //0 debug, 1 info, 2 warn, 3 error
+		Level: 0, //0 debug, 1 info, 2 warn, 3 error
 	},
 	Reg: RegistryCfg{
 		ETCD:        "127.0.0.1:4001",

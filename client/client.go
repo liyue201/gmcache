@@ -1,9 +1,9 @@
 package client
 
 import (
-	"google.golang.org/grpc"
-	"github.com/liyue201/gmcache/proto"
 	"context"
+	"github.com/liyue201/gmcache/proto"
+	"google.golang.org/grpc"
 )
 
 type Client struct {
@@ -28,7 +28,7 @@ func (this *Client) Disconnect() error {
 	if this.conn != nil {
 		err := this.conn.Close()
 		this.conn = nil
-		return  err
+		return err
 	}
 	return nil
 }

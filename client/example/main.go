@@ -5,8 +5,8 @@ import (
 	"log"
 )
 
-func main()  {
-	c :=  client.NewClient("127.0.0.1:8002")
+func main() {
+	c := client.NewClient("127.0.0.1:8002")
 	if err := c.Connect(); err != nil {
 		log.Println(err)
 		return

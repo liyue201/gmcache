@@ -3,8 +3,8 @@ package gmcache
 import (
 	"fmt"
 	"github.com/codinl/go-logger"
-	"github.com/liyue201/gmcache/utils"
 	"github.com/liyue201/gmcache/gmcache/config"
+	"github.com/liyue201/gmcache/utils"
 	"os"
 )
 

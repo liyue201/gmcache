@@ -1,15 +1,16 @@
 package broker
 
 import (
-
+	"github.com/liyue201/gmcache/broker/config"
 	"github.com/liyue201/gmcache/broker/rpc"
 	"github.com/liyue201/gmcache/proto"
-	"testing"
-	"github.com/liyue201/gmcache/broker/config"
+	"github.com/liyue201/grpc-lb"
+	"golang.org/x/net/context"
 	"log"
+	"testing"
 )
 
-func initTest()  {
+func initTest() {
 	if err := config.InitConfig("../apps/broker/broker.conf"); err != nil {
 		log.Print("Init config:", err)
 		return
@@ -21,7 +22,7 @@ func initTest()  {
 }
 
 //go test -v -run="TestSet"
-func TestSet(t *testing.T)  {
+func TestSet(t *testing.T) {
 	initTest()
 
 	conn, err := rpc.GetClientConn()
@@ -40,7 +41,7 @@ func TestSet(t *testing.T)  {
 		Ttl: 1000,
 	}
 
-	ret, err := c.Set(rpc.NewRpcContext(SetArg.Key), &SetArg)
+	ret, err := c.Set(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, SetArg.Key), &SetArg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -49,7 +50,7 @@ func TestSet(t *testing.T)  {
 }
 
 //go test -v -run="TestGet"
-func TestGet(t *testing.T)  {
+func TestGet(t *testing.T) {
 	initTest()
 
 	conn, err := rpc.GetClientConn()
@@ -66,7 +67,7 @@ func TestGet(t *testing.T)  {
 		Key: "test",
 	}
 
-	ret, err := c.Get(rpc.NewRpcContext(arg.Key), &arg)
+	ret, err := c.Get(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, arg.Key), &arg)
 	if err != nil {
 		t.Error(err)
 		return
@@ -75,7 +76,7 @@ func TestGet(t *testing.T)  {
 }
 
 //go test -v -run="TestDelete"
-func TestDelete(t *testing.T)  {
+func TestDelete(t *testing.T) {
 	initTest()
 
 	conn, err := rpc.GetClientConn()
@@ -92,7 +93,7 @@ func TestDelete(t *testing.T)  {
 		Key: "test",
 	}
 
-	ret, err := c.Delete(rpc.NewRpcContext(delArg.Key), &delArg)
+	ret, err := c.Delete(context.WithValue(context.Background(), grpclb.DefaultKetamaKey, delArg.Key), &delArg)
 	if err != nil {
 		t.Error(err)
 		return

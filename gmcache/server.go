@@ -57,7 +57,7 @@ func (this *RpcServer) Set(ctx context.Context, arg *proto.SetOptArg) (*proto.Se
 	logger.Debugf("RpcServer::Set(): in = %#v", arg)
 
 	ret := &proto.SetOptRet{Code: proto.RCODE_SUCCESS}
-	err := this.storage.Set(arg.Key, arg.Val, time.Duration(arg.Ttl) * time.Second)
+	err := this.storage.Set(arg.Key, arg.Val, time.Duration(arg.Ttl)*time.Second)
 	if err != nil {
 		ret.Code = proto.RCODE_FAILURE
 	}
